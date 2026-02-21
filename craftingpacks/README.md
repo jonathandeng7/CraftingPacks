@@ -14,6 +14,8 @@ npm install
 
 ```bash
 GEMINI_API_KEY=your_api_key_here
+# Optional: override the model if needed
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 3) Run the dev server:

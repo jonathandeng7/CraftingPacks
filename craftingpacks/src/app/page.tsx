@@ -41,8 +41,9 @@ export default function Home() {
       if (!res.ok) {
         if (contentType.includes("application/json")) {
           const data = (await res.json()) as { error?: string; message?: string; details?: unknown };
+          const summary = [data.error, data.message].filter(Boolean).join("\n");
           const details = data.details ? `\n${JSON.stringify(data.details, null, 2)}` : "";
-          throw new Error(`${data.error || data.message || "Request failed."}${details}`);
+          throw new Error(`${summary || "Request failed."}${details}`);
         }
         throw new Error(`Request failed with status ${res.status}.`);
       }

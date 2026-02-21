@@ -20,8 +20,10 @@ export async function generateDatapackSpec(params: {
     throw new Error("Missing GEMINI_API_KEY environment variable.");
   }
 
+  const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: modelName });
 
   const prompt = buildDatapackPrompt({ idea: params.idea, version: params.version });
 
