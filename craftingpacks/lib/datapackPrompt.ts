@@ -13,73 +13,146 @@ const JSON_SCHEMA = `{
 }`;
 
 const VERSION_1201_PROMPT = `You are generating a Minecraft Java datapack for version 1.20.1.
+
 Hard requirements (must follow):
+
+pack.mcmeta MUST set "pack_format": 15 for Minecraft 1.20.1.
+
+The datapack root MUST directly contain pack.mcmeta and data/ (no extra nested folders).
+
 Output a valid datapack structure with pack.mcmeta and a data/ folder at the datapack root.
 
 Always create data/minecraft/tags/functions/load.json and data/minecraft/tags/functions/tick.json.
 
-load.json must call <namespace>:load
+load.json MUST call <namespace>:load
 
-tick.json must call <namespace>:tick
+tick.json MUST call <namespace>:tick
 
-Never rely on @s unless you explicitly set execution context.
+Tag files MUST be located at data/minecraft/tags/functions/load.json and data/minecraft/tags/functions/tick.json (NOT under the custom namespace).
 
-Any per-player logic that checks predicates or gives effects must run in player context using:
+Predicate files MUST be located at data/<namespace>/predicates/
 
+Function files MUST be located at data/<namespace>/functions/
+
+Ensure every function referenced in tags or other functions actually exists at data/<namespace>/functions/<name>.mcfunction
+
+Include in notes how to test functions manually using:
+/function <namespace>:load
+/function <namespace>:tick
+
+Never rely on @s unless execution context is explicitly set.
+
+All per-player logic MUST run in player execution context using:
 execute as @a at @s run function <namespace>:...
 
-Predicate-based checks MUST be evaluated "as the player".
+Predicates MUST always be evaluated inside functions running as the player.
 
-If you use if predicate <namespace>:holding_sword, ensure it is executed inside a function already running as that player (i.e., @s is the player).
+If using:
+execute if predicate <namespace>:holding_sword
 
-Use correct 1.20.1 command syntax and resource IDs:
+This MUST be inside a function called using:
+execute as @a at @s run function <namespace>:...
 
-Prefer minecraft: prefixes for effects/items (e.g., minecraft:speed, minecraft:strength).
+Never evaluate predicates from server/global context.
 
-Keep tick logic minimal and testable:
+Use correct Minecraft Java Edition 1.20.1 command syntax and valid resource IDs.
 
-Use short-duration effects (2s) refreshed during tick so effects automatically stop when conditions fail.
+Always use minecraft: prefixes for effects, items, and entities:
+minecraft:speed
+minecraft:strength
+minecraft:netherite_sword
+
+Never invent or guess scoreboard criteria.
+
+Only use valid Minecraft 1.20.1 criteria.
+
+Valid examples include:
+
+minecraft.custom:minecraft.mob_kills
+deathCount
+playerKillCount
+dummy
+
+For tracking mob kills, ALWAYS use:
+scoreboard objectives add <name> minecraft.custom:minecraft.mob_kills
+
+NEVER use invalid criteria such as:
+minecraft.killed:minecraft.mob
+
+If unsure which criterion to use, use:
+scoreboard objectives add <name> dummy
+
+Tick logic MUST remain minimal, deterministic, and testable.
+
+Use short-duration effects (2 seconds) refreshed during tick so effects automatically expire when conditions fail.
+
+Never apply permanent effects from tick.
 
 Required functional test pack to generate: "Adrenaline Combat Mode"
+
 Namespace: example
 
 Functions to include:
 
-example:load prints a tellraw message to all players confirming load.
+example:load
+- MUST print a tellraw confirmation message to all players confirming datapack loaded
 
-example:tick MUST run as each player with tag adrenaline:
-
+example:tick
+- MUST run per-player logic using:
 execute as @a[tag=adrenaline] at @s run function example:tick_player_adrenaline
 
-example:adrenaline_on adds tag adrenaline to @s and prints a message.
+example:adrenaline_on
+- MUST add tag adrenaline to @s
+- MUST print confirmation message
 
-example:adrenaline_off removes tag and clears speed/strength.
+example:adrenaline_off
+- MUST remove tag adrenaline
+- MUST clear minecraft:speed and minecraft:strength
 
-example:adrenaline_toggle toggles tag.
+example:adrenaline_toggle
+- MUST toggle adrenaline tag on @s
 
-example:tick_player_adrenaline contains ONLY:
-
-If predicate example:holding_sword is true, give minecraft:speed and minecraft:strength for 2 seconds.
+example:tick_player_adrenaline
+- MUST ONLY apply effects when predicate example:holding_sword is true
+- MUST use:
+execute if predicate example:holding_sword run effect give @s minecraft:speed 2 0 true
+execute if predicate example:holding_sword run effect give @s minecraft:strength 2 0 true
 
 Predicates:
 
-Create data/example/predicates/holding_sword.json that matches ANY sword in mainhand:
+Create data/example/predicates/holding_sword.json
 
-wooden, stone, iron, golden, diamond, netherite
+It MUST detect mainhand swords using equipment.mainhand.items list.
+
+Include ALL swords:
+minecraft:wooden_sword
+minecraft:stone_sword
+minecraft:iron_sword
+minecraft:golden_sword
+minecraft:diamond_sword
+minecraft:netherite_sword
 
 Debug safeguards (must include in notes):
-Explain how to verify the pack works:
 
+Explain how to verify datapack works:
+
+1. Run:
 /reload
 
+2. Enable adrenaline:
 /function example:adrenaline_on
 
-Hold a sword -> buffs appear
+3. Hold a sword -> buffs appear
 
-Switch items -> buffs expire within 2s
+4. Switch items -> buffs expire within 2 seconds
 
-If "works in chat but not in datapack", it is probably missing execute as @a at @s in tick.`;
+5. Test predicate manually:
+/execute as @p at @s if predicate example:holding_sword run say WORKING
 
+If a command works in chat but not datapack, it means execution context is missing execute as @a at @s in tick pipeline.
+
+The datapack MUST function automatically without requiring manual execution beyond initial testing commands.
+`;
 export function buildDatapackPrompt(params: {
   idea: string;
   version: string;
