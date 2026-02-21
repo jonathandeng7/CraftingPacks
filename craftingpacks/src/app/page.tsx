@@ -17,10 +17,7 @@ export default function Home() {
   const canGenerate = idea.trim().length > 0 && !isGenerating;
   const canDownload = Boolean(zipBlob);
 
-  const versions = useMemo(
-    () => ["1.20.1", "1.20.2", "1.20.4", "1.21"],
-    [],
-  );
+  const versions = useMemo(() => ["1.20.1", "1.20.2", "1.20.4", "1.21"], []);
 
   async function onGenerate() {
     setIsGenerating(true);
@@ -91,37 +88,39 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="mx-auto w-full max-w-3xl px-6 py-12">
-        <h1 className="text-2xl font-semibold">Minecraft Datapack Generator</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Describe what you want, generate a datapack zip.
-        </p>
+    <div className="min-h-screen px-6 py-12 text-foreground">
+      <main className="mx-auto w-full max-w-4xl space-y-6">
+        <header className="mc-panel rounded-2xl p-5">
+          <h1 className="text-2xl">CraftingPacks Command Forge</h1>
+          <p className="mt-2 text-xs text-white/70">
+            Describe a datapack idea, then generate a Minecraft-ready zip.
+          </p>
+        </header>
 
-        <div className="mt-8 space-y-4">
+        <section className="mc-panel rounded-2xl p-5 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="idea">
-              Idea
+            <label className="text-xs text-white/70" htmlFor="idea">
+              Idea Scroll
             </label>
             <textarea
               id="idea"
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              className="min-h-40 w-full rounded-md border bg-transparent p-3 text-sm"
+              className="mc-textarea"
               placeholder="Example: Create a pack that gives players a random potion effect every 30 seconds..."
             />
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-2">
-              <label className="text-sm font-medium" htmlFor="version">
-                Minecraft version
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+            <div className="space-y-2">
+              <label className="text-xs text-white/70" htmlFor="version">
+                Version Rune
               </label>
               <select
                 id="version"
                 value={version}
                 onChange={(e) => setVersion(e.target.value)}
-                className="h-10 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="mc-select"
               >
                 {versions.map((v) => (
                   <option key={v} value={v}>
@@ -135,7 +134,7 @@ export default function Home() {
               type="button"
               onClick={onGenerate}
               disabled={!canGenerate}
-              className="h-10 rounded-md bg-foreground px-4 text-sm font-medium text-background disabled:opacity-60"
+              className="mc-button"
             >
               {isGenerating ? "Generating..." : "Generate"}
             </button>
@@ -144,34 +143,32 @@ export default function Home() {
               type="button"
               onClick={onDownload}
               disabled={!canDownload}
-              className="h-10 rounded-md border px-4 text-sm font-medium disabled:opacity-60"
+              className="mc-button mc-button-secondary"
             >
               Download
             </button>
           </div>
 
           {error ? (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
-              <div className="font-medium">Error</div>
-              <pre className="mt-2 whitespace-pre-wrap break-words text-xs">{error}</pre>
+            <div className="mc-panel rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-xs">
+              <div className="font-semibold">Error</div>
+              <pre className="mt-2 whitespace-pre-wrap break-words text-[10px]">{error}</pre>
             </div>
           ) : null}
+        </section>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Generated file list preview</div>
-            <div className="rounded-md border bg-transparent p-3">
-              {filesPreview.length ? (
-                <pre className="whitespace-pre-wrap break-words text-xs">
-                  {filesPreview.join("\n")}
-                </pre>
-              ) : (
-                <div className="text-xs text-muted-foreground">
-                  No files yet. Click Generate.
-                </div>
-              )}
-            </div>
+        <section className="mc-panel rounded-2xl p-5">
+          <div className="text-xs text-white/70">Generated file list</div>
+          <div className="mc-output mt-3">
+            {filesPreview.length ? (
+              <pre className="whitespace-pre-wrap break-words text-[10px]">
+                {filesPreview.join("\n")}
+              </pre>
+            ) : (
+              <div className="text-[10px] text-white/60">No files yet. Click Generate.</div>
+            )}
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
