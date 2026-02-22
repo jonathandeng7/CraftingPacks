@@ -37,20 +37,14 @@ export async function POST(req: Request) {
 
     // 2) Validate output
     let validation = validateDatapack(spec);
-    if (!validation.ok) {
-      // 2b) Attempt one repair pass
+    let repairAttempts = 0;
+    const maxRepairAttempts = 2;
+    while (!validation.ok && repairAttempts < maxRepairAttempts) {
+      repairAttempts += 1;
       spec = await repairDatapackSpec({ idea, version, spec, errors: validation.errors });
       validation = validateDatapack(spec);
-      if (!validation.ok) {
-        return NextResponse.json(
-          {
-            error: "Generated datapack did not pass validation after repair.",
-            details: validation.errors,
-          },
-          { status: 422 },
-        );
-      }
     }
+    const validationErrors = validation.ok ? [] : validation.errors;
 
     // 3) Save to Firestore (stores the full spec)
     const id = await saveDatapack(spec);
@@ -63,6 +57,11 @@ export async function POST(req: Request) {
     const filename = `${(spec.pack_name || "datapack").replace(/[^a-z0-9-_]+/gi, "_")}.zip`;
     const filesPreview = JSON.stringify(spec.files.map((f) => f.path));
 
+    const validationHeader = validationErrors.length ? "failed" : "ok";
+    const validationErrorsJson = validationErrors.length
+      ? JSON.stringify(validationErrors).slice(0, 1800)
+      : "";
+
     return new NextResponse(zipBuffer, {
       status: 200,
       headers: {
@@ -71,6 +70,10 @@ export async function POST(req: Request) {
         "X-Datapack-Id": id,
         "X-Datapack-Pack-Name": spec.pack_name,
         "X-Datapack-Files": filesPreview,
+        "X-Datapack-Validation": validationHeader,
+        ...(validationErrorsJson
+          ? { "X-Datapack-Validation-Errors": validationErrorsJson }
+          : {}),
       },
     });
   } catch (err) {

@@ -41,7 +41,7 @@ function isAllowedCommand(line: string): boolean {
 function hasInvalidCriteria(line: string): boolean {
   if (!line.startsWith("scoreboard objectives add ")) return false;
   const parts = line.split(/\s+/);
-  const criterion = parts[3];
+  const criterion = parts[4];
   if (!criterion) return true;
   if (ALLOWED_SCORE_CRITERIA.includes(criterion)) return false;
   if (criterion.startsWith("minecraft.custom:")) return false;
