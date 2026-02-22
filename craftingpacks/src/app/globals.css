@@ -20,7 +20,8 @@
 }
 
 body {
-  background: radial-gradient(circle at top, #2a241d 0%, #14120e 55%, #0b0a08 100%);
+  /* make the far edge slightly tan instead of pitch black */
+  background: radial-gradient(circle at top, #2a241d 0%, #14120e 55%, #c2a372 100%);
   color: var(--foreground);
   font-family: var(--font-pixel), sans-serif;
 }
@@ -203,9 +204,13 @@ body {
   display: flex;
   justify-content: center;
   border-radius: 10px;
-  background: rgba(13, 10, 8, 0.75);
+  /* overlay used to darken old pixel icons; make transparent for new images */
+  background: transparent;
   transform: none;
-  backdrop-filter: blur(2px);
+  /* remove blur since background is gone */
+  backdrop-filter: none;
+  /* hide the default slot border so only the icon shows */
+  border: none;
 }
 
 .mc-slot-output {
@@ -214,23 +219,29 @@ body {
 }
 
 .mc-slot-idea {
-  left: 120px;
-  top: 92px;
+  /* original 120×92 positions were based on a 420px‑wide furnace graphic */
+  left: 20.6%; /* 120 / 420 */
+  top: 18.9%;  /* 92 / 420 */
 }
 
 .mc-slot-fuel {
-  left: 120px;
-  top: 212px;
+  left: 20.6%; /* same horizontal as idea slot */
+  top: 67.5%;  /* 212 / 420 */
 }
 
 .mc-slot-output {
-  left: 302px;
-  top: 138px;
+  left: 62%; /* 302 / 420 */
+  top: 37%;  /* 138 / 420 */
 }
 
 .mc-slot-icon {
   font-size: 22px;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+/* prevent additional glow/shadow on image elements inside slots */
+.mc-slot-icon-img {
+  filter: none !important;
 }
 
 /* .mc-flame-overlay {
@@ -284,6 +295,12 @@ body {
   box-shadow: 0 0 14px rgba(251, 191, 36, 0.55);
 }
 
+/* disable the yellow glow on the fuel slot (coal) while preserving for others */
+.mc-slot-fuel.mc-slot-active {
+  border-color: var(--slot-edge);
+  box-shadow: none;
+}
+
 .mc-furnace-output {
   display: flex;
   flex-direction: column;
@@ -303,6 +320,16 @@ body {
   background: linear-gradient(180deg, #facc15, #ef4444);
   animation: flame-flicker 600ms infinite alternate;
   box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+}
+
+
+/* additional section style used by the common-downloads block */
+.common-downloads {
+  margin-top: 2rem;
+}
+
+.common-downloads .mc-section-title {
+  margin-bottom: 0.5rem;
 }
 
 @keyframes flame-flicker {

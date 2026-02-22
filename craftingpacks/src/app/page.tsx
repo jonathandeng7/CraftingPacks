@@ -220,6 +220,27 @@ export default function Home() {
             )}
           </div>
         </section>
+
+        <section className="mc-panel rounded-2xl p-6 common-downloads">
+          <div className="mc-section-title">Commonly downloaded datapacks</div>
+          <ul className="mt-2 text-[10px] space-y-1">
+            <li>
+              <a href="#" className="underline hover:text-accent">
+                Speedrun helper pack
+              </a>
+            </li>
+            <li>
+              <a href="#" className="underline hover:text-accent">
+                Mob farming improvements
+              </a>
+            </li>
+            <li>
+              <a href="#" className="underline hover:text-accent">
+                Custom crafting tables
+              </a>
+            </li>
+          </ul>
+        </section>
       </main>
     </div>
   );
