@@ -12,6 +12,14 @@ export const DATAPACK_JSON_SCHEMA = `{
   "installation_instructions": "string"
 }`;
 
+import {
+  COMMON_COMMAND_REFERENCE,
+  VERSION_119_REFERENCE,
+  VERSION_120_REFERENCE,
+  VERSION_121_REFERENCE,
+} from "@/lib/prompt-examples/command-reference";
+import { VEINMINER_EXAMPLE } from "@/lib/prompt-examples/veinminer-example";
+
 function buildVersionPrompt(version: string, packFormatLine: string): string {
   return `You are generating a Minecraft Java datapack for version ${version}.
 
@@ -161,6 +169,8 @@ export function buildDatapackPrompt(params: {
 }): string {
   const { idea, version } = params;
   const versionPrompt = VERSION_PROMPTS[version] || "";
+  const commandReference = buildCommandReference(version);
+  const exampleReference = includeVeinminerExample(idea) ? VEINMINER_EXAMPLE : "";
 
   // Keep the instructions tight: JSON only, no markdown fences.
   // We also nudge for a minimal-but-valid datapack structure.
@@ -185,7 +195,28 @@ export function buildDatapackPrompt(params: {
     "- Keep files reasonably small; do not include binaries.",
     "- Use a safe lowercase namespace (e.g. 'craftingpacks').",
     versionPrompt,
+    "Command reference (version-specific):",
+    commandReference,
+    exampleReference ? "Example (only if relevant):" : "",
+    exampleReference,
     "Pack goal / idea (implement this):",
     idea.trim(),
   ].join("\n");
+}
+
+function buildCommandReference(version: string): string {
+  if (version.startsWith("1.19")) {
+    return [COMMON_COMMAND_REFERENCE, VERSION_119_REFERENCE].join("\n\n");
+  }
+  if (version.startsWith("1.20")) {
+    return [COMMON_COMMAND_REFERENCE, VERSION_120_REFERENCE].join("\n\n");
+  }
+  if (version.startsWith("1.21")) {
+    return [COMMON_COMMAND_REFERENCE, VERSION_121_REFERENCE].join("\n\n");
+  }
+  return COMMON_COMMAND_REFERENCE;
+}
+
+function includeVeinminerExample(idea: string): boolean {
+  return idea.toLowerCase().includes("veinminer");
 }
