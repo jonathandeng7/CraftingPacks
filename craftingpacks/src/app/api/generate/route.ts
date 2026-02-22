@@ -1,6 +1,6 @@
 // src/app/api/generate/route.ts
 import { NextResponse } from "next/server";
-import { generateDatapackSpec } from "@lib/gemini";
+import { generateDatapackSpec, repairDatapackSpec } from "@lib/gemini";
 import { validateDatapack } from "@lib/validateDatapack";
 import { zipDatapack } from "@lib/zipDatapack";
 import { saveDatapack } from "@lib/datapackService";
@@ -33,18 +33,23 @@ export async function POST(req: Request) {
 
   try {
     // 1) Generate spec with Gemini
-    const spec = await generateDatapackSpec({ idea, version });
+    let spec = await generateDatapackSpec({ idea, version });
 
     // 2) Validate output
-    const validation = validateDatapack(spec);
+    let validation = validateDatapack(spec);
     if (!validation.ok) {
-      return NextResponse.json(
-        {
-          error: "Generated datapack did not pass validation.",
-          details: validation.errors,
-        },
-        { status: 422 },
-      );
+      // 2b) Attempt one repair pass
+      spec = await repairDatapackSpec({ idea, version, spec, errors: validation.errors });
+      validation = validateDatapack(spec);
+      if (!validation.ok) {
+        return NextResponse.json(
+          {
+            error: "Generated datapack did not pass validation after repair.",
+            details: validation.errors,
+          },
+          { status: 422 },
+        );
+      }
     }
 
     // 3) Save to Firestore (stores the full spec)

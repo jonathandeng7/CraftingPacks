@@ -5,7 +5,7 @@ export type DatapackSpec = {
   installation_instructions: string;
 };
 
-const JSON_SCHEMA = `{
+export const DATAPACK_JSON_SCHEMA = `{
   "pack_name": "string",
   "description": "string",
   "files": [{ "path": "string", "content": "string" }],
@@ -89,68 +89,42 @@ Use short-duration effects (2 seconds) refreshed during tick so effects automati
 
 Never apply permanent effects from tick.
 
-Required functional test pack to generate: "Adrenaline Combat Mode"
+Guidelines for safe structure (generalized, not a specific pack):
 
-Namespace: example
+- Use a single namespace (lowercase, no spaces) and keep functions under data/<namespace>/functions/.
+- Use load.mcfunction for setup (scoreboard objectives, tags, initialization messages).
+- Use tick.mcfunction for per-tick logic. It MUST call per-player functions via:
+  execute as @a at @s run function <namespace>:...
 
-Functions to include:
-
-example:load
-- MUST print a tellraw confirmation message to all players confirming datapack loaded
-
-example:tick
-- MUST run per-player logic using:
-execute as @a[tag=adrenaline] at @s run function example:tick_player_adrenaline
-
-example:adrenaline_on
-- MUST add tag adrenaline to @s
-- MUST print confirmation message
-
-example:adrenaline_off
-- MUST remove tag adrenaline
-- MUST clear minecraft:speed and minecraft:strength
-
-example:adrenaline_toggle
-- MUST toggle adrenaline tag on @s
-
-example:tick_player_adrenaline
-- MUST ONLY apply effects when predicate example:holding_sword is true
-- MUST use:
-execute if predicate example:holding_sword run effect give @s minecraft:speed 2 0 true
-execute if predicate example:holding_sword run effect give @s minecraft:strength 2 0 true
+If you introduce optional features, gate them with tags or scoreboard checks.
 
 Predicates:
 
-Create data/example/predicates/holding_sword.json
+- Store predicates under data/<namespace>/predicates/.
+- Always evaluate predicates inside a player-executed function (do NOT run them from server context).
 
-It MUST detect mainhand swords using equipment.mainhand.items list.
+Scoreboards:
 
-Include ALL swords:
-minecraft:wooden_sword
-minecraft:stone_sword
-minecraft:iron_sword
-minecraft:golden_sword
-minecraft:diamond_sword
-minecraft:netherite_sword
+- Use only valid criteria. If unsure, default to dummy.
+- Example valid criteria forms:
+  - dummy
+  - deathCount
+  - playerKillCount
+  - minecraft.custom:<stat>
+  - minecraft.mined:<block>
 
-Debug safeguards (must include in notes):
+Effects and resources:
 
-Explain how to verify datapack works:
+- Always use minecraft: prefixes for effects/items/entities.
+- Use short durations (2 seconds) in tick logic.
 
-1. Run:
-/reload
+Testing notes (must include in installation_instructions):
 
-2. Enable adrenaline:
-/function example:adrenaline_on
+- /reload
+- /function <namespace>:load
+- /function <namespace>:tick
 
-3. Hold a sword -> buffs appear
-
-4. Switch items -> buffs expire within 2 seconds
-
-5. Test predicate manually:
-/execute as @p at @s if predicate example:holding_sword run say WORKING
-
-If a command works in chat but not datapack, it means execution context is missing execute as @a at @s in tick pipeline.
+If a command works in chat but not in a datapack, it usually means execution context is missing execute as @a at @s in the tick pipeline.
 
 The datapack MUST function automatically without requiring manual execution beyond initial testing commands.
 `;
@@ -196,7 +170,7 @@ export function buildDatapackPrompt(params: {
     "Task: Generate a COMPLETE datapack as a list of files.",
     "Return JSON ONLY (no markdown, no backticks, no commentary).",
     "The JSON MUST match exactly this schema:",
-    JSON_SCHEMA,
+    DATAPACK_JSON_SCHEMA,
     "Required datapack constraints:",
     "- Include a valid pack.mcmeta at path: pack.mcmeta",
     "- Include at least one namespace under data/<namespace>/...",

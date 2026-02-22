@@ -7,6 +7,69 @@ export type DatapackValidationResult =
 const MAX_FILES = 400;
 const MAX_FILE_CHARS = 250_000; // prevent huge payloads
 
+const ALLOWED_COMMAND_PREFIXES = [
+  "execute",
+  "scoreboard",
+  "tellraw",
+  "effect",
+  "function",
+  "schedule",
+  "data",
+  "tag",
+  "give",
+  "clear",
+  "setblock",
+  "fill",
+  "summon",
+  "kill",
+  "tp",
+  "teleport",
+  "particle",
+  "playsound",
+  "title",
+  "bossbar",
+  "say",
+];
+
+const ALLOWED_SCORE_CRITERIA = ["dummy", "deathCount", "playerKillCount"];
+
+function isAllowedCommand(line: string): boolean {
+  const first = line.split(/\s+/)[0];
+  return ALLOWED_COMMAND_PREFIXES.includes(first);
+}
+
+function hasInvalidCriteria(line: string): boolean {
+  if (!line.startsWith("scoreboard objectives add ")) return false;
+  const parts = line.split(/\s+/);
+  const criterion = parts[3];
+  if (!criterion) return true;
+  if (ALLOWED_SCORE_CRITERIA.includes(criterion)) return false;
+  if (criterion.startsWith("minecraft.custom:")) return false;
+  if (criterion.startsWith("minecraft.mined:")) return false;
+  return true;
+}
+
+function validateMcfunction(path: string, content: string, errors: string[]) {
+  const lines = content.split(/\r?\n/);
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return;
+
+    if (!isAllowedCommand(trimmed)) {
+      errors.push(`Unsupported command in ${path} at line ${idx + 1}: ${trimmed}`);
+      return;
+    }
+
+    if (trimmed.includes("minecraft.killed:")) {
+      errors.push(`Invalid scoreboard criterion in ${path} at line ${idx + 1}: ${trimmed}`);
+    }
+
+    if (hasInvalidCriteria(trimmed)) {
+      errors.push(`Invalid scoreboard criteria in ${path} at line ${idx + 1}: ${trimmed}`);
+    }
+  });
+}
+
 function isSafeRelativePath(path: string): boolean {
   if (typeof path !== "string") return false;
   if (path.length === 0) return false;
@@ -85,6 +148,10 @@ export function validateDatapack(spec: DatapackSpec): DatapackValidationResult {
     if (path === "pack.mcmeta") hasPackMcmeta = true;
     if (path.startsWith("data/")) hasDataFile = true;
     if (path.startsWith("data/") && path.endsWith(".mcfunction")) hasMcFunction = true;
+
+    if (path.endsWith(".mcfunction") && typeof content === "string") {
+      validateMcfunction(path, content, errors);
+    }
   }
 
   if (!hasPackMcmeta) errors.push("Missing required file: pack.mcmeta");
