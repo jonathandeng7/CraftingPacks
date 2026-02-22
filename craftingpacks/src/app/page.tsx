@@ -2,10 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-<<<<<<< HEAD
 import Link from "next/link";
-import { useMemo, useState } from "react";
-=======
 import {
   User,
   onAuthStateChanged,
@@ -15,7 +12,6 @@ import {
 } from "firebase/auth";
 import { auth } from "@lib/firebase";
 
->>>>>>> 9bfc429 (database oauth implemented)
 import coalIcon from "./icons/coal.webp";
 import cookedIcon from "./icons/cookedPC.webp";
 import uncookedIcon from "./icons/uncookedpC.png";
@@ -217,13 +213,11 @@ export default function Home() {
                 Feed the furnace with an idea and version. Receive a ready datapack zip.
               </p>
             </div>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <Link href="/popular" className="mc-button mc-button-secondary text-center">
                 Popular Packs
               </Link>
               <div className="mc-badge">Minecraft Java</div>
-=======
 
             <div className="mc-panel rounded-2xl p-4 w-full sm:w-[360px]">
               <div className="flex items-center justify-between gap-3">
@@ -335,7 +329,6 @@ export default function Home() {
                   </div>
                 </div>
               )}
->>>>>>> 9bfc429 (database oauth implemented)
             </div>
           </div>
         </header>
