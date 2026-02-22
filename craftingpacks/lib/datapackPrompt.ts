@@ -12,11 +12,12 @@ const JSON_SCHEMA = `{
   "installation_instructions": "string"
 }`;
 
-const VERSION_1201_PROMPT = `You are generating a Minecraft Java datapack for version 1.20.1.
+function buildVersionPrompt(version: string, packFormatLine: string): string {
+  return `You are generating a Minecraft Java datapack for version ${version}.
 
 Hard requirements (must follow):
 
-pack.mcmeta MUST set "pack_format": 15 for Minecraft 1.20.1.
+${packFormatLine}
 
 The datapack root MUST directly contain pack.mcmeta and data/ (no extra nested folders).
 
@@ -55,7 +56,7 @@ execute as @a at @s run function <namespace>:...
 
 Never evaluate predicates from server/global context.
 
-Use correct Minecraft Java Edition 1.20.1 command syntax and valid resource IDs.
+Use correct Minecraft Java Edition ${version} command syntax and valid resource IDs.
 
 Always use minecraft: prefixes for effects, items, and entities:
 minecraft:speed
@@ -153,12 +154,39 @@ If a command works in chat but not datapack, it means execution context is missi
 
 The datapack MUST function automatically without requiring manual execution beyond initial testing commands.
 `;
+}
+
+const VERSION_PROMPTS: Record<string, string> = Object.fromEntries(
+  [
+    "1.19",
+    "1.19.1",
+    "1.19.2",
+    "1.19.3",
+    "1.19.4",
+    "1.20",
+    "1.20.1",
+    "1.20.2",
+    "1.20.3",
+    "1.20.4",
+    "1.20.5",
+    "1.20.6",
+    "1.21.1",
+    "1.21.2",
+    "1.21.3",
+  ].map((version) => {
+    const packFormatLine =
+      version === "1.20.1"
+        ? 'pack.mcmeta MUST set "pack_format": 15 for Minecraft 1.20.1.'
+        : `pack.mcmeta MUST set the correct pack_format for Minecraft ${version}.`;
+    return [version, buildVersionPrompt(version, packFormatLine)];
+  }),
+);
 export function buildDatapackPrompt(params: {
   idea: string;
   version: string;
 }): string {
   const { idea, version } = params;
-  const versionPrompt = version === "1.20.1" ? VERSION_1201_PROMPT : "";
+  const versionPrompt = VERSION_PROMPTS[version] || "";
 
   // Keep the instructions tight: JSON only, no markdown fences.
   // We also nudge for a minimal-but-valid datapack structure.
@@ -182,7 +210,6 @@ export function buildDatapackPrompt(params: {
     "- Use forward slashes in paths; no absolute paths; do not use '..'.",
     "- Keep files reasonably small; do not include binaries.",
     "- Use a safe lowercase namespace (e.g. 'craftingpacks').",
-    versionPrompt ? "" : "",
     versionPrompt,
     "Pack goal / idea (implement this):",
     idea.trim(),
