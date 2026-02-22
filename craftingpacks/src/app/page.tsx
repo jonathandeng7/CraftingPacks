@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import coalIcon from "./icons/coal.webp";
 import cookedIcon from "./icons/cookedPC.webp";
@@ -104,7 +105,12 @@ export default function Home() {
                 Feed the furnace with an idea and version. Receive a ready datapack zip.
               </p>
             </div>
-            <div className="mc-badge">Minecraft Java</div>
+            <div className="flex items-center gap-2">
+              <Link href="/popular" className="mc-button mc-button-secondary text-center">
+                Popular Packs
+              </Link>
+              <div className="mc-badge">Minecraft Java</div>
+            </div>
           </div>
         </header>
 
