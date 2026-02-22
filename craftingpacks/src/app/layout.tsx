@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Press_Start_2P, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
+import PixelCursorLayer from "@/components/ui/pixel-cursor-layer";
 
 const pressStart = Press_Start_2P({
   variable: "--font-pixel",
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body
         className={`${pressStart.variable} ${splineMono.variable} antialiased`}
       >
+        <PixelCursorLayer />
         {children}
       </body>
     </html>
