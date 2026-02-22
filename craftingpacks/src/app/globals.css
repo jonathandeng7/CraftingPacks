@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b0f12;
-  --foreground: #e7f1ee;
-  --panel: #151b22;
-  --panel-edge: #2c3440;
-  --accent: #5eead4;
-  --slot: #111827;
-  --slot-edge: #374151;
-  --slot-hover: #22c55e;
+  --background: #14120e;
+  --foreground: #f7f1e5;
+  --panel: #1f1b16;
+  --panel-edge: #3a2f24;
+  --accent: #f59e0b;
+  --slot: #1c1917;
+  --slot-edge: #4b3a2a;
+  --slot-hover: #fbbf24;
   --danger: #ef4444;
 }
 
@@ -20,19 +20,19 @@
 }
 
 body {
-  background: radial-gradient(circle at top, #0f172a 0%, #0b0f12 45%, #050608 100%);
+  background: radial-gradient(circle at top, #2a241d 0%, #14120e 55%, #0b0a08 100%);
   color: var(--foreground);
   font-family: var(--font-pixel), sans-serif;
 }
 
 .mc-panel {
-  background: linear-gradient(180deg, rgba(21, 27, 34, 0.96), rgba(11, 15, 18, 0.92));
+  background: linear-gradient(180deg, rgba(31, 27, 22, 0.96), rgba(16, 14, 12, 0.92));
   border: 1px solid var(--panel-edge);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .mc-slot {
-  background: linear-gradient(180deg, #0f172a 0%, var(--slot) 100%);
+  background: linear-gradient(180deg, #2a2118 0%, var(--slot) 100%);
   border: 1px solid var(--slot-edge);
   position: relative;
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
@@ -93,7 +93,7 @@ body {
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--panel-edge);
-  background: rgba(7, 10, 14, 0.8);
+  background: rgba(16, 14, 12, 0.85);
   padding: 12px 14px;
   font-size: 12px;
   color: var(--foreground);
@@ -119,7 +119,7 @@ body {
 .mc-button {
   border-radius: 12px;
   border: 1px solid var(--panel-edge);
-  background: linear-gradient(180deg, #1f2937 0%, #0f172a 100%);
+  background: linear-gradient(180deg, #3a2f24 0%, #1f1b16 100%);
   padding: 12px 18px;
   font-size: 12px;
   color: var(--foreground);
@@ -140,16 +140,169 @@ body {
 }
 
 .mc-button-secondary {
-  background: linear-gradient(180deg, #0f172a 0%, #0b0f12 100%);
-  border-color: #334155;
+  background: linear-gradient(180deg, #1f1b16 0%, #15120f 100%);
+  border-color: #5a4633;
 }
 
 .mc-output {
   border-radius: 12px;
   border: 1px solid var(--panel-edge);
-  background: rgba(6, 9, 13, 0.9);
+  background: rgba(14, 12, 10, 0.9);
   padding: 12px 14px;
   min-height: 120px;
+}
+
+.mc-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.mc-badge {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(8, 12, 16, 0.6);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mc-furnace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.mc-furnace-frame {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.mc-furnace-image {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+.mc-furnace-img {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.mc-slot-overlay {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(13, 10, 8, 0.75);
+  transform: none;
+  backdrop-filter: blur(2px);
+}
+
+.mc-slot-output {
+  width: 58px;
+  height: 58px;
+}
+
+.mc-slot-idea {
+  left: 120px;
+  top: 92px;
+}
+
+.mc-slot-fuel {
+  left: 120px;
+  top: 212px;
+}
+
+.mc-slot-output {
+  left: 302px;
+  top: 138px;
+}
+
+.mc-slot-icon {
+  font-size: 22px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+/* .mc-flame-overlay {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 21.5%;
+  top: 42%;
+} */
+
+.mc-furnace-column {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mc-slot-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mc-slot-spacer {
+  height: 6px;
+}
+
+.mc-slot-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mc-slot-lg {
+  height: 64px;
+  width: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+.mc-slot-xl {
+  height: 84px;
+  width: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+}
+
+.mc-slot-active {
+  border-color: #fbbf24;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.55);
+}
+
+.mc-furnace-output {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-flame-lg {
+  width: 24px;
+  height: 36px;
+  border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(180deg, rgba(250, 204, 21, 0.3), rgba(239, 68, 68, 0.2));
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+
+.mc-flame-lg[data-active="true"] {
+  background: linear-gradient(180deg, #facc15, #ef4444);
+  animation: flame-flicker 600ms infinite alternate;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
 }
 
 @keyframes flame-flicker {
