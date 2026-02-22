@@ -2,37 +2,31 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 type PopularPack = {
   id: string;
-  pack_name: string;
+  name: string;
   description: string;
   version: string;
-  download_url: string;
-  downloads?: number;
+  filename: string;
+  downloadUrl: string;
 };
 
 export default function PopularPacksPage() {
   const [packs, setPacks] = useState<PopularPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const packsRef = collection(db, "popular_packs");
-        const q = query(packsRef, orderBy("downloads", "desc"), limit(24));
-        const snapshot = await getDocs(q);
-        const results = snapshot.docs.map((doc) => {
-          const data = doc.data() as Omit<PopularPack, "id">;
-          return {
-            id: doc.id,
-            ...data,
-          };
-        });
-        setPacks(results);
+        const response = await fetch("/api/popular-files", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Failed to load popular packs (${response.status}).`);
+        }
+        const data = (await response.json()) as { packs: PopularPack[] };
+        setPacks(data.packs ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -53,7 +47,7 @@ export default function PopularPacksPage() {
             <div>
               <h1 className="text-2xl">Popular Packs</h1>
               <p className="mt-2 text-xs text-white/70">
-                Download community favorites stored in Firebase.
+                Download local pack files from this project.
               </p>
             </div>
             <Link href="/" className="mc-button mc-button-secondary text-center">
@@ -78,29 +72,41 @@ export default function PopularPacksPage() {
           ) : null}
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {packs.map((pack) => (
-              <article key={pack.id} className="mc-panel rounded-2xl p-4">
+            {packs.map((pack) => {
+              const isOpen = expandedId === pack.id;
+              return (
+                <article
+                  key={pack.id}
+                  className="mc-panel cursor-pointer rounded-2xl p-4"
+                  onClick={() =>
+                    setExpandedId((current) => (current === pack.id ? null : pack.id))
+                  }
+                >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm">{pack.pack_name}</div>
+                    <div className="text-sm">{pack.name}</div>
                     <div className="mt-1 text-[10px] text-white/60">
-                      Version: {pack.version}
+                      File: {pack.filename}
                     </div>
                   </div>
-                  {typeof pack.downloads === "number" ? (
-                    <div className="mc-badge">{pack.downloads} downloads</div>
-                  ) : null}
                 </div>
-                <p className="mt-3 text-[10px] text-white/70">{pack.description}</p>
+                <div
+                  className={`mt-3 overflow-hidden text-[10px] transition-all duration-200 ease-out ${
+                    isOpen ? "max-h-24 text-white/70" : "max-h-4 text-white/50"
+                  }`}
+                >
+                  <p>{isOpen ? pack.description : "Click to view description"}</p>
+                </div>
                 <a
                   className="mc-button mt-4 block text-center"
-                  href={pack.download_url}
+                  href={pack.downloadUrl}
                   download
                 >
                   Download
                 </a>
               </article>
-            ))}
+              );
+            })}
           </div>
         </section>
       </main>
