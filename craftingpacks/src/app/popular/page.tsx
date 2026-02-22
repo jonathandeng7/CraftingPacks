@@ -89,13 +89,22 @@ export default function PopularPacksPage() {
                       File: {pack.filename}
                     </div>
                   </div>
+                  <div className="mt-1 text-[10px] text-white/50">
+                    <span className="sr-only">Toggle description</span>
+                    <span aria-hidden="true">{isOpen ? "▴" : "▾"}</span>
+                  </div>
+                </div>
+                <div className="mt-2 text-[10px] text-white/50">
+                  {isOpen ? "Click to collapse" : "Click to expand"}
                 </div>
                 <div
-                  className={`mt-3 overflow-hidden text-[10px] transition-all duration-200 ease-out ${
-                    isOpen ? "max-h-24 text-white/70" : "max-h-4 text-white/50"
+                  className={`mt-3 grid overflow-hidden text-[10px] transition-[grid-template-rows] duration-200 ease-out ${
+                    isOpen ? "grid-rows-[1fr] text-white/70" : "grid-rows-[0fr] text-white/50"
                   }`}
                 >
-                  <p>{isOpen ? pack.description : "Click to view description"}</p>
+                  <div className="min-h-0">
+                    <p>{isOpen ? pack.description : "Click to view description"}</p>
+                  </div>
                 </div>
                 <a
                   className="mc-button mt-4 block text-center"

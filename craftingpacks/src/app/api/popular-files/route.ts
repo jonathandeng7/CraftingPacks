@@ -14,6 +14,8 @@ const DISPLAY_NAME_MAP: Record<string, string> = {
   "Shingeki-no-Craft_2.2.4.1.zip": "Shingeki no Craft | Attack on Titan",
   "Villager Transportation v1.3.1 1.20 - 1.20.4.zip": "Villager Transportation",
   "playerhealthindicator.zip": "Health Indicator",
+  "Ships 3.0.3.zip": "Ships",
+  "deeper-oceans-mc1.20-v1.0.2.zip": "Deeper Oceans",
 };
 
 const DESCRIPTION_MAP: Record<string, string> = {
@@ -28,6 +30,10 @@ const DESCRIPTION_MAP: Record<string, string> = {
     "Makes transporting villagers easier and more practical by allowing them to travel using camels and llamas, simplifying long-distance movement and village management.",
   "playerhealthindicator.zip":
     "Displays each player’s health directly below their name, allowing for better combat awareness and multiplayer gameplay clarity.",
+  "Ships 3.0.3.zip":
+    "Adds dangerous illager ship dungeons to Minecraft oceans, introducing new exploration challenges and naval encounters. Ships generate as hostile structures filled with pillagers, vindicators, and loot, while larger fleets create high-risk battles guarded by evokers. Illagers can also use boats, allowing them to patrol oceans and chase players across water for more dynamic combat.",
+  "deeper-oceans-mc1.20-v1.0.2.zip":
+    "Transforms Minecraft’s oceans by making them significantly deeper, creating a more immersive and challenging underwater world. Ocean monuments generate lower beneath the surface, and configurable depth settings allow players to customize how extreme the oceans become — perfect for exploration, survival challenges, and ocean-focused gameplay.",
 };
 
 function parseFilename(filename: string): {
