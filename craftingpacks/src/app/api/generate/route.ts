@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 type GenerateRequest = {
   idea: string;
   version?: string;
+  uid?: string | null;
 };
 
 export async function POST(req: Request) {
@@ -26,6 +27,9 @@ export async function POST(req: Request) {
     typeof body.version === "string" && body.version.trim()
       ? body.version.trim()
       : "1.20.1";
+
+  // uid is optional (guest users can generate too)
+  const uid = typeof body.uid === "string" && body.uid.trim() ? body.uid.trim() : null;
 
   if (!idea) {
     return NextResponse.json({ error: "idea is required." }, { status: 400 });
@@ -46,8 +50,8 @@ export async function POST(req: Request) {
     }
     const validationErrors = validation.ok ? [] : validation.errors;
 
-    // 3) Save to Firestore (stores the full spec)
-    const id = await saveDatapack(spec);
+    // 3) Save to Firestore (stores the full spec + uid)
+    const id = await saveDatapack(spec, uid);
 
     // 4) Zip it up
     const zipBytes = await zipDatapack(spec);
