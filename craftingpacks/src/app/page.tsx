@@ -24,7 +24,14 @@ export default function Home() {
   const canGenerate = idea.trim().length > 0 && !isGenerating;
   const canDownload = Boolean(zipBlob);
 
-  const versions = useMemo(() => ["1.20.1", "1.20.2", "1.20.4", "1.21"], []);
+  const versions = useMemo(() => [
+    // 1.19.x
+    "1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4",
+    // 1.20.x
+    "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
+    // 1.21.x
+    "1.21", "1.21.1", "1.21.2", "1.21.3",
+  ], []);
 
   async function onGenerate() {
     setIsGenerating(true);

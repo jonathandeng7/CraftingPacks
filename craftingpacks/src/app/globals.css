@@ -20,8 +20,10 @@
 }
 
 body {
-  /* make the far edge slightly tan instead of pitch black */
-  background: radial-gradient(circle at top, #2a241d 0%, #14120e 55%, #c2a372 100%);
+  /* brighter, warmer palette and pixelated appearance */
+  background: radial-gradient(circle at top, #4a3e31 0%, #2a241d 55%, #e4c692 100%);
+  background-size: 8px 8px; /* chunk up the gradient into blocks */
+  image-rendering: pixelated;
   color: var(--foreground);
   font-family: var(--font-pixel), sans-serif;
 }
