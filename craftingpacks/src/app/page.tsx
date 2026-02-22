@@ -12,6 +12,8 @@ import {
 } from "firebase/auth";
 import { auth } from "@lib/firebase";
 
+import { listDatapacksByUser, type DatapackDoc } from "@lib/datapackService";
+
 import coalIcon from "./icons/coal.webp";
 import cookedIcon from "./icons/cookedPC.webp";
 import uncookedIcon from "./icons/uncookedpC.png";
@@ -46,6 +48,16 @@ function maskEmail(email?: string | null) {
   if (!domain) return email;
   const shown = name.length <= 2 ? name : `${name.slice(0, 2)}…`;
   return `${shown}@${domain}`;
+}
+
+function formatCreatedAt(createdAt?: any) {
+  // Firestore Timestamp has .toDate()
+  if (!createdAt || typeof createdAt.toDate !== "function") return "";
+  try {
+    return createdAt.toDate().toLocaleString();
+  } catch {
+    return "";
+  }
 }
 
 export default function Home() {
@@ -111,10 +123,14 @@ export default function Home() {
   const [downloadName, setDownloadName] = useState<string>("datapack.zip");
   const [filesPreview, setFilesPreview] = useState<string[]>([]);
 
+  // ====== MY DATAPACKS STATE ======
+  const [myPacks, setMyPacks] = useState<Array<{ id: string } & DatapackDoc>>([]);
+  const [myPacksLoading, setMyPacksLoading] = useState(false);
+  const [myPacksError, setMyPacksError] = useState<string | null>(null);
+
   const canGenerate = idea.trim().length > 0 && !isGenerating;
   const canDownload = Boolean(zipBlob);
 
-  // ✅ Combined version list (from your 2nd file) + keep DEFAULT_VERSION as selected
   const versions = useMemo(
     () => [
       // 1.19.x
@@ -140,6 +156,32 @@ export default function Home() {
     []
   );
 
+  async function refreshMyPacks(currentUser: User) {
+    setMyPacksError(null);
+    setMyPacksLoading(true);
+    try {
+      const rows = await listDatapacksByUser(currentUser.uid, 50);
+      setMyPacks(rows as Array<{ id: string } & DatapackDoc>);
+    } catch (e) {
+      setMyPacksError(e instanceof Error ? e.message : String(e));
+      setMyPacks([]);
+    } finally {
+      setMyPacksLoading(false);
+    }
+  }
+
+  // Load "My Datapacks" on sign-in and clear on sign-out
+  useEffect(() => {
+    if (!user) {
+      setMyPacks([]);
+      setMyPacksError(null);
+      setMyPacksLoading(false);
+      return;
+    }
+    void refreshMyPacks(user);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
+
   async function onGenerate() {
     setIsGenerating(true);
     setError(null);
@@ -151,7 +193,6 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // ✅ Combined: pass uid when signed in (from your auth version)
         body: JSON.stringify({ idea, version, uid: user?.uid ?? null }),
       });
 
@@ -194,6 +235,11 @@ export default function Home() {
 
       const blob = await res.blob();
       setZipBlob(blob);
+
+      // Refresh "My Datapacks" after successful generate (only if signed in)
+      if (user) {
+        void refreshMyPacks(user);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -281,9 +327,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => setAuthMode("login")}
-                        className={`mc-button w-full ${
-                          authMode === "login" ? "" : "mc-button-secondary"
-                        }`}
+                        className={`mc-button w-full ${authMode === "login" ? "" : "mc-button-secondary"}`}
                         disabled={authBusy}
                       >
                         Login
@@ -291,9 +335,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => setAuthMode("signup")}
-                        className={`mc-button w-full ${
-                          authMode === "signup" ? "" : "mc-button-secondary"
-                        }`}
+                        className={`mc-button w-full ${authMode === "signup" ? "" : "mc-button-secondary"}`}
                         disabled={authBusy}
                       >
                         Sign up
@@ -404,19 +446,11 @@ export default function Home() {
               <div className="mc-furnace-image">
                 <img src={FURNACE_IMG_URL} alt="Furnace" className="mc-furnace-img" draggable={false} />
 
-                <div
-                  className={`mc-slot mc-slot-overlay mc-slot-idea ${
-                    idea.trim() ? "mc-slot-active" : ""
-                  }`}
-                >
+                <div className={`mc-slot mc-slot-overlay mc-slot-idea ${idea.trim() ? "mc-slot-active" : ""}`}>
                   <Image src={uncookedIcon} alt="Idea" className="mc-slot-icon-img" />
                 </div>
 
-                <div
-                  className={`mc-slot mc-slot-overlay mc-slot-fuel ${
-                    version ? "mc-slot-active" : ""
-                  }`}
-                >
+                <div className={`mc-slot mc-slot-overlay mc-slot-fuel ${version ? "mc-slot-active" : ""}`}>
                   <Image src={coalIcon} alt="Coal" className="mc-slot-icon-img" />
                 </div>
 
@@ -424,9 +458,7 @@ export default function Home() {
                   type="button"
                   onClick={onDownload}
                   disabled={!canDownload}
-                  className={`mc-slot mc-slot-overlay mc-slot-output ${
-                    zipBlob ? "mc-slot-active" : ""
-                  }`}
+                  className={`mc-slot mc-slot-overlay mc-slot-output ${zipBlob ? "mc-slot-active" : ""}`}
                   aria-label="Download datapack"
                 >
                   <Image src={cookedIcon} alt="Output" className="mc-slot-icon-img" />
@@ -435,7 +467,12 @@ export default function Home() {
             </div>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
-              <button type="button" onClick={() => void onGenerate()} disabled={!canGenerate} className="mc-button w-full">
+              <button
+                type="button"
+                onClick={() => void onGenerate()}
+                disabled={!canGenerate}
+                className="mc-button w-full"
+              >
                 {isGenerating ? "Smelting..." : "Generate"}
               </button>
               <button
@@ -449,13 +486,12 @@ export default function Home() {
             </div>
 
             <div className="mt-4 text-[10px] text-white/60">
-              {isGenerating
-                ? "Furnace running. Forging datapack contents..."
-                : "Load inputs, then smelt a datapack zip."}
+              {isGenerating ? "Furnace running. Forging datapack contents..." : "Load inputs, then smelt a datapack zip."}
             </div>
           </div>
         </section>
 
+        {/* ====== GENERATED FILES ====== */}
         <section className="mc-panel rounded-2xl p-6">
           <div className="mc-section-title">Generated File List</div>
           <div className="mc-output mt-3">
@@ -467,6 +503,77 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ====== MY DATAPACKS (SIGNED IN ONLY) ====== */}
+        {user ? (
+          <section className="mc-panel rounded-2xl p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="mc-section-title">My Datapacks</div>
+              <button
+                type="button"
+                className="mc-button mc-button-secondary"
+                onClick={() => void refreshMyPacks(user)}
+                disabled={myPacksLoading}
+              >
+                {myPacksLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+
+            {myPacksError ? (
+              <div className="mt-3 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-[10px]">
+                <div className="font-semibold">Load Error</div>
+                <div className="mt-1 whitespace-pre-wrap break-words">{myPacksError}</div>
+                <div className="mt-2 text-white/60">
+                  If it mentions an index, click the Firestore “Create index” link and create it.
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-3 space-y-2">
+              {myPacksLoading ? (
+                <div className="text-[10px] text-white/60">Loading your datapacks…</div>
+              ) : myPacks.length ? (
+                myPacks.map((p) => (
+                  <div key={p.id} className="mc-panel rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm text-white/90 truncate">
+                          {p.pack_name || "Untitled datapack"}
+                        </div>
+                        <div className="mt-1 text-[10px] text-white/60 whitespace-pre-wrap break-words">
+                          {p.description || "No description"}
+                        </div>
+                        <div className="mt-2 text-[10px] text-white/60">
+                          <span className="text-white/70">Files:</span>{" "}
+                          <span className="text-white/80">{Array.isArray(p.files) ? p.files.length : 0}</span>
+                          {p.createdAt ? (
+                            <>
+                              {"  •  "}
+                              <span className="text-white/70">Created:</span>{" "}
+                              <span className="text-white/80">{formatCreatedAt(p.createdAt)}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Placeholder actions (we’ll wire these up next) */}
+                      <div className="flex flex-col gap-2 shrink-0">
+                        <button type="button" className="mc-button mc-button-secondary" disabled>
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-[10px] text-white/60">
+                  No datapacks saved yet. Generate one while signed in.
+                </div>
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        {/* ====== COMMON DOWNLOADS ====== */}
         <section className="mc-panel rounded-2xl p-6 common-downloads">
           <div className="mc-section-title">Commonly downloaded datapacks</div>
           <ul className="mt-2 text-[10px] space-y-1">

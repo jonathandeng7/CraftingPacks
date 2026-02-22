@@ -39,18 +39,20 @@ export async function POST(req: Request) {
     // 1) Generate spec with Gemini
     let spec = await generateDatapackSpec({ idea, version });
 
-    // 2) Validate output
+    // 2) Validate output + attempt repair a couple times
     let validation = validateDatapack(spec);
     let repairAttempts = 0;
     const maxRepairAttempts = 2;
+
     while (!validation.ok && repairAttempts < maxRepairAttempts) {
       repairAttempts += 1;
       spec = await repairDatapackSpec({ idea, version, spec, errors: validation.errors });
       validation = validateDatapack(spec);
     }
+
     const validationErrors = validation.ok ? [] : validation.errors;
 
-    // 3) Save to Firestore (stores the full spec + uid)
+    // 3) Save to Firestore (stores the full spec + uid + createdAt)
     const id = await saveDatapack(spec, uid);
 
     // 4) Zip it up
@@ -58,7 +60,8 @@ export async function POST(req: Request) {
     const zipBuffer = Buffer.from(zipBytes);
 
     // 5) Return zip as download + include metadata headers
-    const filename = `${(spec.pack_name || "datapack").replace(/[^a-z0-9-_]+/gi, "_")}.zip`;
+    const packName = spec.pack_name || "datapack";
+    const filename = `${packName.replace(/[^a-z0-9-_]+/gi, "_")}.zip`;
     const filesPreview = JSON.stringify(spec.files.map((f) => f.path));
 
     const validationHeader = validationErrors.length ? "failed" : "ok";
@@ -66,20 +69,20 @@ export async function POST(req: Request) {
       ? JSON.stringify(validationErrors).slice(0, 1800)
       : "";
 
-    return new NextResponse(zipBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-        "X-Datapack-Id": id,
-        "X-Datapack-Pack-Name": spec.pack_name,
-        "X-Datapack-Files": filesPreview,
-        "X-Datapack-Validation": validationHeader,
-        ...(validationErrorsJson
-          ? { "X-Datapack-Validation-Errors": validationErrorsJson }
-          : {}),
-      },
-    });
+    const headers: Record<string, string> = {
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "X-Datapack-Id": id,
+      "X-Datapack-Pack-Name": packName,
+      "X-Datapack-Files": filesPreview,
+      "X-Datapack-Validation": validationHeader,
+    };
+
+    if (validationErrorsJson) {
+      headers["X-Datapack-Validation-Errors"] = validationErrorsJson;
+    }
+
+    return new NextResponse(zipBuffer, { status: 200, headers });
   } catch (err) {
     return NextResponse.json(
       {
